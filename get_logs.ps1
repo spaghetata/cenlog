@@ -1,8 +1,12 @@
 # Script for a central logging overview
 # Script by N.Sedlaczek
 
-Write-Host "Welcome to logging."
+Write-Host "Welcome to cenlog."
 Write-Host "Type /help for help."
+
+# Basepath vor lib.txt
+$BASEPATH = "$env:APPDATA\cenlog\lib.txt"
+$var_bool = "true"
 
 # define Functions
 function main{
@@ -33,7 +37,6 @@ function main{
 
 }
 
-
 function help_menu {
 
     Write-Host "=====================================HELP====================================="
@@ -54,7 +57,7 @@ function help_menu {
 function add_log {
     Write-Host "You are going to add a new log-file entry to the library."
 
-    $get_last_id = Get-Content -Path ".\lib.txt" -Tail 1 | Convert-String -Example "ID | Name | Path=ID"
+    $get_last_id = Get-Content -Path $BASEPATH -Tail 1 | Convert-String -Example "ID | Name | Path=ID"
     $log_id = [int]$get_last_id + 1
 
     $add_log_name = Read-Host -Prompt "Set name: "
@@ -65,7 +68,7 @@ function add_log {
     [void]$name_path.Append("$add_log_name | ")
     [void]$name_path.Append("$add_log_path")
 
-    $name_path | Add-Content -Path ".\lib.txt"
+    $name_path | Add-Content -Path $BASEPATH
 
 }
 
@@ -77,7 +80,7 @@ function dellog {
     if ($ask_for_del -eq "y"){
 
         $rem_id = Read-Host "Please insert the log-id you want to delete."
-        $get_line = Get-Content -Path ".\lib.txt" | Select-String -Pattern "$rem_id | * | *"
+        $get_line = Get-Content -Path $BASEPATH | Select-String -Pattern "$rem_id | * | *"
         $get_line.Replace("$rem_id | * | *","")
 
     }
@@ -87,25 +90,30 @@ function dellog {
 }
 
 # checks if lib.txt is existing
-if (Test-Path .\lib.txt) {
+if (Test-Path $BASEPATH ) {
 
     main
 
 }
 
+# creates dir and lib.txt
 else {
 
-    Write-Host "Creating library"
-    New-Item -Path . -Name "lib.txt" -ItemType "File"
-    "ID | Name | Path" | Add-Content -Path ".\lib.txt"
-    "0 | deflaut | default" | Add-Content -Path ".\lib.txt"
+    Write-Host Creating library
+    New-Item -Path "$env:APPDATA\cenlog" -ItemType "directory"
+    New-Item -Path $BASEPATH -ItemType "File"
+    "ID | Name | Path" | Add-Content -Path $BASEPATH
+    "0 | deflaut | default" | Add-Content -Path $BASEPATH
 
 }
 
-main
+# runs main function till programm gets stopped
+while ($var_bool) {
 
+    main
 
-#TODO create library
+}
+
 #TODO setup dellog
 #TODO unable to delete lib.txt entry with id 0
 #TODO when delete a entry all following ids have to be id-1
