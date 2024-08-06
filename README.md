@@ -1,2 +1,2 @@
-# logging
+# cenlog
 A central logging overview
