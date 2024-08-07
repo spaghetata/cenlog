@@ -75,43 +75,60 @@ function add_log {
 function dellog {
 
     Write-Host "You are going to delete a log-file entry from the library."
-    $ask_for_del = Read-Host "Are you sure to delete a log-file entry? (y/n)"
 
-    if ($ask_for_del -eq "y"){
+    $rem_id = Read-Host "Please insert the log-id you want to delete."
 
-        $rem_id = Read-Host "Please insert the log-id you want to delete."
+    # checks if the input is 0
+    if ($rem_id -eq "0"){
 
-        # checks if the input is 0
-        if ($rem_id -eq "0"){
-
-            Write-Host "Sorry but you can not delete the default entry."
-
-        }
-
-        else{
-
-            # filters the line with ID (regex)
-            $line = Get-Content -Path $BASEPATH | Select-String -Pattern "^$rem_id\b"
-            # overwrite the lib.txt without the filtered line above (so it gets deleted)
-            Get-Content -Path $BASEPATH | Where-Object { $_ -ne $line} | Set-Content -Path $BASEPATH
-
-            # changes the IDs after filtered line above
-            #$following_ids = @(Get-Content -Path $BASEPATH | Convert-String -Example "ID | Name | Path=ID" | Where-Object { [int]$_ -gt [int]$rem_id})
-            #ForEach($following_id in $following_ids){
-            #
-            #   $new_id = $following_id - 1
-            #   $update_line = Get-Content -Path $BASEPATH | Select-String -Pattern "^$following_id\b"
-            #   $update_line.replace("$following_id","$new_id")
-            #}
-
-
-
-        }
+        Write-Host "Sorry but you can not delete the default entry."
 
     }
 
+    else{
+        $ask_to_del = Read-Host "Do you want to delete the entry?(y/n)"
 
-    else{}
+        if($ask_to_del -eq "y"){
+            # filters the line with ID (regex)
+            $del_line = Get-Content -Path $BASEPATH | Select-String -Pattern "^$rem_id\b"
+            # deletes the filtered line above
+            $content = [System.IO.File]::ReadAllText($BASEPATH).replace("$del_line`r`n", "")
+            [System.IO.File]::WriteAllText($BASEPATH, $content)
+
+            # changes the IDs after filtered line above
+            $following_ids = @(Get-Content -Path $BASEPATH | Select-Object -Skip 1 | Convert-String -Example "ID | Name | Path=ID" | Where-Object { $_ -gt $rem_id})
+            $new_ids = @()
+
+            ForEach($identifier in $following_ids){
+
+                    $new_ids += ($identifier - 1)
+
+            }
+
+            $new_content = [System.IO.File]::ReadAllText($BASEPATH)
+
+            for($i = 0; $i -lt $following_ids.Length; $i++){
+
+                $following_id = $following_ids[$i]
+                $new_id = $new_ids[$i]
+
+                $new_content = $new_content -replace "^$following_id\b", "$new_id"
+
+            }
+            [System.IO.File]::WriteAllText($BASEPATH, $new_content)
+
+            # clears the arrays
+            $following_ids = @()
+            $new_ids = @()
+        }
+
+        elseif($ask_to_del -eq "n"){}
+
+        else{
+            #TODO Errorhandling
+        }
+
+    }
 
 }
 
@@ -125,11 +142,11 @@ if (Test-Path $BASEPATH ) {
 # creates dir and lib.txt
 else {
 
-    Write-Host Creating library
+    Write-Host "Creating lib.txt"
     New-Item -Path "$env:APPDATA\cenlog" -ItemType "directory"
     New-Item -Path $BASEPATH -ItemType "File"
     "ID | Name | Path" | Add-Content -Path $BASEPATH
-    "0 | deflaut | default" | Add-Content -Path $BASEPATH
+    "0 | default | default" | Add-Content -Path $BASEPATH
 
 }
 
@@ -142,6 +159,6 @@ while ($var_bool) {
 
 #TODO what if dir is existing but lib.txt is not (now you get error that the dir is already existing)
 #TODO /dellog setup
-#TODO /dellog replace file is to fast (process still running)
+#TODO /dellog regex for id input
 #TODO /dellog what if the entered id is not existing
 #TODO /dellog when delete a entry all following ids have to be id-1
