@@ -1,8 +1,9 @@
 # Script for a central logging overview
 # Script by N.Sedlaczek
 
-Write-Host "Welcome to cenlog."
-Write-Host "Type /help for help."
+Write-Host "
+Welcome to cenlog.`r
+Type /help for help."
 
 # Basepath vor lib.txt
 $BASEPATH = "$env:APPDATA\cenlog\lib.txt"
@@ -14,49 +15,49 @@ function main{
 
     $command = Read-Host
 
-    if ($command -eq "/help"){
+    if ($command -eq "help"){
 
         help
 
     }
 
-    elseif ($command -eq "/showlogs"){
+    elseif ($command -eq "show"){
 
         showlogs
 
     }
 
-    elseif ($command -eq "/addlog"){
+    elseif ($command -eq "add"){
 
         addlog
 
     }
 
-    elseif ($command -eq "/dellog") {
+    elseif ($command -eq "delete") {
 
         dellog
 
     }
 
-    elseif ($command -eq "/chlog") {
+    elseif ($command -eq "change") {
 
         chlog
 
     }
 
-    elseif ($command -eq "/open"){
+    elseif ($command -eq "open"){
 
         open
 
     }
 
-    elseif ($command -eq "/save") {
+    elseif ($command -eq "save") {
 
         save
 
     }
 
-    elseif ($command -eq "/exit"){
+    elseif ($command -eq "exit"){
 
         exit_script
 
@@ -75,14 +76,14 @@ function help {
     Write-Host "
     =====================================HELP=====================================`r
     command                 definition`r
-    /help                   list all possible commands`r
-    /showlogs               shows all log entrys`r
-    /addlog                 adds a log-file to the library`r
-    /dellog                 deletes a log-file from the library`r
-    /chlog                  changes the name and/or the path of the log-file`r
-    /open                   opens a log-file`r
-    /save                   saves a log-file to a choosen place`r
-    /exit                   stops the programm`r
+    help                   list all possible commands`r
+    show                   shows all log entrys`r
+    add                    adds a log-file to the library`r
+    delete                 deletes a log-file from the library`r
+    change                 changes the name and/or the path of the log-file`r
+    open                   opens a log-file`r
+    save                   saves a log-file to a choosen place`r
+    exit                   stops the programm`r
     =============================================================================="
 
 }
@@ -102,12 +103,12 @@ function addlog {
     $add_log_name = Read-Host -Prompt "Set name"
     $add_log_path = (Read-Host -Prompt "Set path")
 
-    $name_path = New-Object System.Text.StringBuilder
-    [void]$name_path.Append("$log_id | ")
-    [void]$name_path.Append("$add_log_name | ")
-    [void]$name_path.Append("$add_log_path")
+    $new_entry = New-Object System.Text.StringBuilder
+    [void]$new_entry.Append("`r$log_id | ")
+    [void]$new_entry.Append("$add_log_name | ")
+    [void]$new_entry.Append("$add_log_path")
 
-    $name_path | Add-Content -Path $BASEPATH
+    $new_entry | Add-Content -Path $BASEPATH
 
 }
 
@@ -130,10 +131,9 @@ function dellog {
 
         if($ask_to_del -eq "y"){
             # filters the line with ID (regex)
-            $del_line = Get-Content -Path $BASEPATH | Select-String -Pattern "^$rem_id\b"
+            $del_line = Get-Content -Path $BASEPATH | Select-String -Pattern "^$rem_id\b.*$"
             # deletes the filtered line
-            $content = $READFILE.Replace("$del_line`r`n", "")
-            [System.IO.File]::WriteAllText($BASEPATH, $content)
+            $new_content = $READFILE -replace "$del_line", ""
 
             # changes the IDs after filtered line above
             $following_ids = @(Get-Content -Path $BASEPATH | Select-Object -Skip 1 | Convert-String -Example "ID | Name | Path=ID" | Where-Object { $_ -gt $rem_id})
@@ -147,12 +147,13 @@ function dellog {
 
             for($i = 0; $i -lt $following_ids.Length; $i++){
 
-                $following_id = $following_ids[$i]
-                $new_id = $new_ids[$i]
+                $new_content = $new_content -replace "\b$following_ids[$i]\b", "$new_ids[$i]"
 
-                $new_content = $READFILE.Replace("^$following_id\b", "$new_id")
-                [System.IO.File]::WriteAllText($BASEPATH, $new_content)
             }
+            Write-Host $new_content
+            exit_script
+
+            [System.IO.File]::WriteAllText($BASEPATH, $new_content)
 
             # clears the arrays
             $following_ids = @()
@@ -200,10 +201,9 @@ function chlog{
 
         $get_new_name = Read-Host "Please enter the new name."
 
-        $to_replace = ($get_entry -split "\|")[1].Trim()
-        $changed_name = [regex]::Replace($READFILE, "$to_replace\b", $get_new_name) #does also replace the name in path
+        $name_to_replace = ($get_entry -split "|")[1].Trim()
+        $changed_name = [regex]::Replace($READFILE, "\b$name_to_replace\b", $get_new_name) #TODO does also replace the name in path
         Write-Host $changed_name
-        break
         [System.IO.File]::WriteAllText($BASEPATH, $changed_name)
 
 
@@ -287,12 +287,13 @@ while ($VARBOOL) {
 
 }
 
-#TODO what if dir is existing but lib.txt is not (now you get error that the dir is already existing)
-#TODO /dellog setup
-#TODO /chlog setup
+#TODO:              what if dir is existing but lib.txt is not (now you get error that the dir is already existing)
+#TODO: delete       setup
+#TODO: change       setup
 
-#TODO /addlog name can only exist once
-#TODO /dellog does not change id because ReadAllText dont accept regex
-#TODO /dellog does not delete last line
-#TODO /dellog what if the entered id is not existing
-#TODO /dellog when delete a entry all following ids have to be id-1
+#TODO: add          name can only exist once
+#FIXME: delete      does not change id because ReadAllText dont accept regex
+#FIXME: delete      does not delete last line
+#FIXME:             lib.txt needs to be updated when content gets requested
+#TODO: delete       what if the entered id is not existing
+#TODO: delete       when delete a entry all following ids have to be id-1
