@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+
+                 ####################
+##################      Import      ##################
+                 ####################
+
 import os
 import sys
 import subprocess
@@ -7,12 +12,25 @@ import re
 import tempfile
 import shutil
 
+                 ####################
+##################   Informations   ##################
+                 ####################
 
-# Start of defining global variables #
+Version     = "1.2"
+Credits     = "spaghetata"
+License     = "GPL3.0"
+
+
+                 ####################
+################## Global variables ##################
+                 ####################
+
 var = True
 
 
-# Start of checking on what os the script runs #
+                 ####################
+##################     Check OS     ##################
+                 ####################
 if sys.platform.startswith("win"):
     lib = f"{Path(os.getenv("APPDATA"))}\\cenlog\\lib.txt"
     def open_terminal(value):
@@ -34,7 +52,10 @@ else:
     print(f"{os.name} is not supported.")
 
 
-# Start of less-code functions #
+                 ####################
+##################    Functions     ##################
+                 ####################
+
 def check_id(identifier):
     pattern = pattern = rf"^\b{identifier}\b"
 
@@ -288,8 +309,15 @@ def exit_script():
     sys.exit(0)
 
 
-# Start of checking if file is existing #
+                 ####################
+##################  Create lib.txt  ##################
+                 ####################
+
 if os.path.exists(lib):
+    print(
+    "Welcome to Cenlog.\n"
+    "Type 'help' for seeing the functions."
+    )
     main()
 
 else:
@@ -300,6 +328,8 @@ else:
         print("Directorys and files successfully created.")
 
 
-# Start of program loop
+                 ####################
+##################       Loop       ##################
+                 ####################
 while var == True:
     main()
