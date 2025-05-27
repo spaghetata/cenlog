@@ -58,16 +58,24 @@ else:
                  ####################
 
 def check_id(identifier):
-    pattern = rf"^\b{identifier}\b"
 
-    with open(lib, "r") as file:
-        lines = file.readlines()
+    if identifier.isdigit() and type(identifier) == "Int":
+        pattern = rf"^\b{identifier}\b"
 
-    for line in lines:
-        if re.match(pattern, line):
-            return True
+        with open(lib, "r") as file:
+            lines = file.readlines()
 
-    return False
+        for line in lines:
+            if re.match(pattern, line):
+                return True
+
+    elif identifier == "0":
+        print("The default entry can not be modified.")
+        return False
+
+    else:
+        print(f"Invalid Input: {identifier}")
+        return False
 
 def main():
     command = input()
@@ -183,12 +191,6 @@ def delete():
         with open(lib, "w") as file:
             file.writelines(new_lines)
 
-    elif identifier == "0":
-        print("You cant delete the default entry!")
-
-    else:
-        print(f"There is no entry with the id {identifier}.")
-
 def change():
     show()
 
@@ -243,9 +245,6 @@ def change():
             else:
                 print(f"{change_path} is not existing or path is not an .txt file")
 
-    else:
-        print(f"There is no entry with the id {identifier}.")
-
 def open_log():
     show()
 
@@ -274,9 +273,6 @@ def open_log():
                 else:
                     print(f"{parts[2]} is not existing")
 
-    else:
-        print(f"There is no entry with the id {identifier}.")
-
 def export():
     show()
 
@@ -300,9 +296,6 @@ def export():
 
                 else:
                     print("One of the path is not existing")
-
-    else:
-        print(f"There is no entry with the id {identifier}.")
 
 def exit_script():
     sys.exit(0)
