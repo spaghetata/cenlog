@@ -58,7 +58,7 @@ else:
                  ####################
 
 def check_id(identifier):
-    pattern = pattern = rf"^\b{identifier}\b"
+    pattern = rf"^\b{identifier}\b"
 
     with open(lib, "r") as file:
         lines = file.readlines()
