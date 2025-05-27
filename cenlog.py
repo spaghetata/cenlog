@@ -31,6 +31,7 @@ var = True
                  ####################
 ##################     Check OS     ##################
                  ####################
+
 if sys.platform.startswith("win"):
     lib = f"{Path(os.getenv("APPDATA"))}\\cenlog\\lib.txt"
     def open_terminal(value):
@@ -68,8 +69,6 @@ def check_id(identifier):
 
     return False
 
-
-# Start of defining commands #
 def main():
     command = input()
 
@@ -331,5 +330,6 @@ else:
                  ####################
 ##################       Loop       ##################
                  ####################
+
 while var == True:
     main()
