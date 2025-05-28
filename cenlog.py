@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-                 ####################
-##################      Import      ##################
-                 ####################
+                ####################
+#################      Import      #################
+                ####################
 
 import os
 import sys
@@ -12,54 +12,49 @@ import re
 import tempfile
 import shutil
 
-                 ####################
-##################   Informations   ##################
-                 ####################
+                ####################
+#################   Informations   #################
+                ####################
 
-Version     = "1.2"
+Version     = "1.4"
 Credits     = "spaghetata"
 License     = "GPL3.0"
 
 
-                 ####################
-################## Global variables ##################
-                 ####################
+                ####################
+################# Global variables #################
+                ####################
 
 var = True
+welcome = "Welcome to Cenlog.\nType 'help' for seeing the functions."
 
 
-                 ####################
-##################     Check OS     ##################
-                 ####################
+                ####################
+#################     Check OS     #################
+                ####################
 
 if sys.platform.startswith("win"):
-    lib = f"{Path(os.getenv("APPDATA"))}\\cenlog\\lib.txt"
+    lib = f"{Path(os.getenv("APPDATA"))}/cenlog/lib.txt"
     def open_terminal(value):
-        subprocess.Popen(["start", "cmd.exe", "/K", sys.executable, value], shell=True)
+        subprocess.Popen(["start", "cmd.exe", "/K", value], shell=True)
 
-elif sys.platform.startswith("darwin"):
-    lib = f"{Path.home()}\\.config\\cenlog\\lib.txt"
+elif sys.platform.startswith("darwin") or sys.platform.startswith("linux"):
+    lib = Path("~/.config/cenlog/lib.txt").expanduser()
     def open_terminal(value):
         default_shell = os.environ.get("SHELL", "/bin/bash")
-        subprocess.Popen([default_shell, "-c", sys.executable, value])
-
-elif sys.platform.startswith("linux"):
-    lib = f"{Path.home()}\\.config\\cenlog\\lib.txt"
-    def open_terminal(value):
-        default_shell = os.environ.get("SHELL", "/bin/bash")
-        subprocess.Popen([default_shell, "-c", sys.executable, value ])
+        subprocess.Popen([default_shell, "-c", value])
 
 else:
     print(f"{os.name} is not supported.")
 
 
-                 ####################
-##################    Functions     ##################
-                 ####################
+                ####################
+#################    Functions     #################
+                ####################
 
 def check_id(identifier):
 
-    if identifier.isdigit() and type(identifier) == "Int":
+    if identifier.isdigit():
         pattern = rf"^\b{identifier}\b"
 
         with open(lib, "r") as file:
@@ -69,8 +64,11 @@ def check_id(identifier):
             if re.match(pattern, line):
                 return True
 
+        print(f"The identifier - {identifier} - is not an valid option.")
+        return False
+
     elif identifier == "0":
-        print("The default entry can not be modified.")
+        print("The default entry can not be used or modified.")
         return False
 
     else:
@@ -119,7 +117,7 @@ def help_menu():
     "change                 changes the name and/or the path of the log-file\n"
     "open                   opens a log-file\n"
     "export                 exports a log-file to a choosen place\n"
-    "exit                   stops the programm\n"
+    "exit                   exits the programm\n"
     "=============================================================================="
     )
 
@@ -132,7 +130,7 @@ def add():
     name = input("Please enter the name of the log-file:")
     path = input("Please enter the path of the log-file:")
 
-    if os.path.exists(path) and path.endswith(".txt"):
+    if os.path.exists(path) and (path.endswith(".log") or path.endswith(".txt")):
         with open(lib, "r+") as file:
             last_line = file.readlines()[-1]
             last_known_identifier = ""
@@ -144,7 +142,7 @@ def add():
             file.write(f"\n{new_identifier} | {name} | {path}")
 
     else:
-        print(f"{path} is not existing or path is not an .txt file")
+        print(f"{path} is not existing or the file is not an .txt or .log file")
 
 def delete():
     identifier = input("Please enter the id of the entry you want to delete:")
@@ -301,15 +299,12 @@ def exit_script():
     sys.exit(0)
 
 
-                 ####################
-##################  Create lib.txt  ##################
-                 ####################
+                ####################
+#################  Create lib.txt  #################
+                ####################
 
 if os.path.exists(lib):
-    print(
-    "Welcome to Cenlog.\n"
-    "Type 'help' for seeing the functions."
-    )
+    print(welcome)
     main()
 
 else:
@@ -317,12 +312,12 @@ else:
     os.makedirs(os.path.dirname(lib), exist_ok=True)
     with open(lib, "x") as file:
         file.write("ID | NAME | PATH\n0 | Default | Default")
-        print("Directorys and files successfully created.")
+        print(f"Directorys and files successfully created.\n{welcome}")
 
 
-                 ####################
-##################       Loop       ##################
-                 ####################
+                ####################
+#################       Loop       #################
+                ####################
 
 while var:
     main()
