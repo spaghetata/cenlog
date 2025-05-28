@@ -8,7 +8,7 @@ Please use Cenlog to edit it.\
 The first two lines of the lib.txt should never be changed. \
 If it is otherwise just add following two lines to the beginning:\
 ID | Name | Path\
-0 | Default | Default\
+0 | Default | Default
 
 Have fun,\
 spaghetata
