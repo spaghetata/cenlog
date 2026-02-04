@@ -11,12 +11,13 @@ from pathlib import Path
 import re
 import tempfile
 import shutil
+import luminapy
 
                 ####################
 #################   Informations   #################
                 ####################
 
-Version     = "1.4"
+Version     = "1.5"
 Credits     = "spaghetata"
 License     = "GPL3.0"
 
@@ -35,45 +36,17 @@ welcome = "Welcome to Cenlog.\nType 'help' for seeing the functions."
 
 if sys.platform.startswith("win"):
     lib = f"{Path(os.getenv("APPDATA"))}/cenlog/lib.txt"
-    def open_terminal(value):
-        subprocess.Popen(["start", "cmd.exe", "/K", value], shell=True)
 
 elif sys.platform.startswith("darwin") or sys.platform.startswith("linux"):
     lib = Path("~/.config/cenlog/lib.txt").expanduser()
-    def open_terminal(value):
-        default_shell = os.environ.get("SHELL", "/bin/bash")
-        subprocess.Popen([default_shell, "-c", value])
 
 else:
-    print(f"{os.name} is not supported.")
+    luminapy.fail(f"{os.name} is not supported.")
 
 
                 ####################
 #################    Functions     #################
                 ####################
-
-def check_id(identifier):
-
-    if identifier.isdigit():
-        pattern = rf"^\b{identifier}\b"
-
-        with open(lib, "r") as file:
-            lines = file.readlines()
-
-        for line in lines:
-            if re.match(pattern, line):
-                return True
-
-        print(f"The identifier - {identifier} - is not an valid option.")
-        return False
-
-    elif identifier == "0":
-        print("The default entry can not be used or modified.")
-        return False
-
-    else:
-        print(f"Invalid Input: {identifier}")
-        return False
 
 def main():
     command = input()
@@ -90,20 +63,20 @@ def main():
     elif command == "delete":
         delete()
 
-    elif command == "change":
-        change()
+#    elif command == "change":
+#        change()
 
     elif command == "open":
         open_log()
 
-    elif command == "export":
-        export()
+#    elif command == "export":
+#        export()
 
     elif command == "exit":
         exit_script()
 
     else:
-        print(f"Command {command} is not existing")
+        luminapy.warn(f"Command '{command}' is not existing")
 
 def help_menu():
     print(
@@ -123,181 +96,73 @@ def help_menu():
 
 def show():
     with open(lib, "r") as file:
-        content= file.read()
-        print(content)
+        print(file.read())
 
 def add():
     name = input("Please enter the name of the log-file:")
     path = input("Please enter the path of the log-file:")
 
     if os.path.exists(path) and (path.endswith(".log") or path.endswith(".txt")):
-        with open(lib, "r+") as file:
-            last_line = file.readlines()[-1]
-            last_known_identifier = ""
-            for char in last_line:
-                if char ==" ":
-                    break
-                last_known_identifier += char
-            new_identifier = int(last_known_identifier) + 1
-            file.write(f"\n{new_identifier} | {name} | {path}")
+        with open(lib, "a+") as file:
+            file.write(f"{name} | {path}\n")
 
     else:
-        print(f"{path} is not existing or the file is not an .txt or .log file")
+        luminapy.warn(f"{path} is not existing or the file is not an .txt or .log file")
 
 def delete():
-    identifier = input("Please enter the id of the entry you want to delete:")
+    linenumber = int(input("Please enter the linenumber you want to delete:"))
 
-    is_existing = check_id(identifier)
+    with open(lib, "r") as file:
+        lines = file.readlines()
 
-    if is_existing and identifier != "0":
-        with open(lib, "r") as file:
-            lines = file.readlines()
+    if linenumber <= 0 or linenumber > len(lines):
+        luminapy.warn("There is something wrong with the linenumber you entered")
 
-        new_lines = []
-        deleted_line_index = None
+    else:
+        pointer = 1
 
-        for i, line in enumerate(lines):
-
-            line_id = line.split()[0] if line else ""
-
-            if line_id == identifier:
-                deleted_line_index = i
-                continue
-
-            new_lines.append(line)
-
-        for idx in range(deleted_line_index, len(new_lines)):
-            line = new_lines[idx]
-
-            parts = line.split(maxsplit = 1)
-
-            if not parts:
-                continue
-
-            try:
-                old_id = int(parts[0])
-            except ValueError:
-                continue
-
-            new_id = old_id - 1
-            rest_of_line = parts[1] if len(parts) > 1 else ""
-
-            new_line = f"{new_id} {rest_of_line}"
-
-            new_lines[idx] = new_line
+        for line in lines:
+            if pointer == linenumber:
+                del lines[pointer - 1]
+                break
+            pointer += 1
 
         with open(lib, "w") as file:
-            file.writelines(new_lines)
+            file.writelines(lines)
+            luminapy.info("Line deleted")
 
-def change():
-    show()
-
-    identifier = input("\nWhich entry do you want to change?\n\n")
-
-    is_existing = check_id(identifier)
-
-    if is_existing:
-
-        change_name = input("Please enter new name (leave empty for no change):")
-        if change_name:
-
-            with open(lib, "r") as file:
-                lines = file.readlines()
-
-            updated_lines = []
-            for line in lines:
-                if re.match(rf"^\b{identifier}\b", line):
-                    parts = [p.strip() for p in line.split("|")]
-                    parts[1] = f"{change_name}"
-                    updated_entry = " | ".join(parts)
-                    updated_lines.append(f"{updated_entry}\n")
-
-                else:
-                    updated_lines.append(line)
-
-            with open(lib, "w") as file:
-                file.writelines(updated_lines)
-
-            del file, lines, line, parts, updated_entry, updated_lines
-
-        change_path = input("Please enter new path (leave empty for no change):")
-        if change_path:
-            if os.path.exists(change_path) and change_path.endswith(".txt"):
-                with open(lib, "r") as file:
-                    lines = file.readlines()
-
-                updated_lines = []
-                for line in lines:
-                    if re.match(rf"^\b{identifier}\b", line):
-                        parts = [p.strip() for p in line.split("|")]
-                        parts[2] = f"{change_path}"
-                        updated_entry = " | ".join(parts)
-                        updated_lines.append(f"{updated_entry}\n")
-
-                    else:
-                        updated_lines.append(line)
-
-                with open(lib, "w") as file:
-                    file.writelines(updated_lines)
-
-            else:
-                print(f"{change_path} is not existing or path is not an .txt file")
+#def change():
 
 def open_log():
-    show()
+    linenumber = int(input("Enter the linenumber of the log you want to open"))
 
-    identifier = input("\nPlease enter the id of the log-file you want to open:")
+    with open(lib, "r") as file:
+        lines = file.readlines()
 
-    is_existing = check_id(identifier)
+    pointer = 1
 
-    if is_existing:
+    if linenumber <= 0 or linenumber > len(lines):
+        luminapy.warn("There is something wrong with the linenumber you entered")
 
-        with open(lib, "r") as file:
-            lines = file.readlines()
-
+    else:
         for line in lines:
-            if re.match(rf"^\b{identifier}\b", line):
-                parts = [p.strip() for p in line.split("|")]
+            if pointer == linenumber:
+                line = line.strip().split("| ")
+                with open(line[1], "r") as logfile:
+                    print(
+                        f"\nBeginn of {line[0]}\n\n"
+                        f"{logfile.read()}\n\n"
+                        f"End of {line[0]}\n"
+                        )
 
-                if os.path.exists(parts[2]):
-                    with open(parts[2], "r") as file:
-                        content = file.read()
 
-                        with tempfile.NamedTemporaryFile(delete=False, suffix=".py", mode="w") as tmp:
-                            tmp.write(f"print({repr(content)})")
+                break
+            pointer += 1
 
-                        open_terminal(tmp.name)
-
-                else:
-                    print(f"{parts[2]} is not existing")
-
-def export():
-    show()
-
-    identifier = input("\nPlease enter the id of the log-file you want to export:")
-
-    is_existing = check_id(identifier)
-
-    if is_existing:
-
-        with open(lib, "r") as file:
-            lines = file.readlines()
-
-        for line in lines:
-            if re.match(rf"^\b{identifier}\b", line):
-                parts = [p.strip() for p in line.split("|")]
-                dst = input(f"Please enter path of destination: ")
-
-                if os.path.exists(parts[2]) and os.path.exists(dst):
-                    shutil.copy2(parts[2], dst)
-                    print(f"Export to {dst} successfull")
-
-                else:
-                    print("One of the path is not existing")
+#def export():
 
 def exit_script():
     sys.exit(0)
-
 
                 ####################
 #################  Create lib.txt  #################
@@ -311,8 +176,9 @@ else:
     # creates parent dirs if not existing
     os.makedirs(os.path.dirname(lib), exist_ok=True)
     with open(lib, "x") as file:
-        file.write("ID | NAME | PATH\n0 | Default | Default")
-        print(f"Directorys and files successfully created.\n{welcome}")
+        pass
+
+    luminapy.info(f"Directorys and files successfully created.\n{welcome}")
 
 
                 ####################
