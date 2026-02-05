@@ -17,7 +17,7 @@ import luminapy
 #################   Informations   #################
                 ####################
 
-Version     = "1.6"
+Version     = "1.7"
 Credits     = "spaghetata"
 License     = "GPL3.0"
 Discription = "This is a script to have a overview of your log-files."
@@ -76,18 +76,19 @@ def check_entrys():
     with open(lib, "r") as file:
         lines = file.readlines()
 
-        paths = []
+    paths = []
 
     for line in lines:
         line = line.strip().split("| ")
 
-        if os.path.exists(line[1]):
-            pass
-
-        else:
+        if not os.path.exists(line[1]) or line[0] == "" or line[1] == "":
             paths.append(line[1])
 
-    luminapy.warn(f"Following paths may be not correct: {paths}")
+        else:
+            pass
+
+    if paths:
+        luminapy.warn(f"Following paths may be not correct: {paths}")
 
 def help_menu():
     print(
@@ -107,7 +108,7 @@ def show():
     with open(lib, "r") as file:
         print(
             "\n===\n"
-            f"{file.read()}\n"
+            f"\n{file.read()}\n"
             "===\n"
             )
 
@@ -124,82 +125,94 @@ def add():
 
 def delete():
     show()
-    linenumber = int(input("Please enter the linenumber you want to delete: "))
+    try:
+        linenumber = int(input("Please enter the linenumber you want to delete: "))
 
-    with open(lib, "r") as file:
-        lines = file.readlines()
+        with open(lib, "r") as file:
+            lines = file.readlines()
 
-    if linenumber <= 0 or linenumber > len(lines):
-        luminapy.warn("There is something wrong with the linenumber you entered.")
+        if linenumber <= 0 or linenumber > len(lines):
+            luminapy.warn("There is something wrong with the linenumber you entered.")
 
-    else:
-        pointer = 1
+        else:
+            pointer = 1
 
-        for line in lines:
-            if pointer == linenumber:
-                del lines[pointer - 1]
-                break
-            pointer += 1
+            for line in lines:
+                if pointer == linenumber:
+                    del lines[pointer - 1]
+                    break
+                pointer += 1
 
-        with open(lib, "w") as file:
-            file.writelines(lines)
-            luminapy.info("Line deleted.")
+            with open(lib, "w") as file:
+                file.writelines(lines)
+                luminapy.info("Line deleted.")
+
+    except ValueError:
+        luminapy.warn("Your input is not a valid number.")
 
 def open_log():
     show()
-    linenumber = int(input("Enter the linenumber of the log you want to open: "))
+    try:
+        linenumber = int(input("Enter the linenumber of the log you want to open: "))
 
-    with open(lib, "r") as file:
-        lines = file.readlines()
+        with open(lib, "r") as file:
+            lines = file.readlines()
 
-    pointer = 1
+        pointer = 1
 
-    if linenumber <= 0 or linenumber > len(lines):
-        luminapy.warn("There is something wrong with the linenumber you entered.")
+        if linenumber <= 0 or linenumber > len(lines):
+            luminapy.warn("There is something wrong with the linenumber you entered.")
 
-    else:
-        for line in lines:
-            if pointer == linenumber:
-                line = line.strip().split("| ")
-                with open(line[1], "r") as logfile:
-                    print(
-                        f"\nBeginn of {line[0]}\n\n"
-                        f"{logfile.read()}\n\n"
-                        f"End of {line[0]}\n"
-                        )
+        else:
+            for line in lines:
+                if pointer == linenumber:
+                    line = line.strip().split("| ")
+                    with open(line[1], "r") as logfile:
+                        print(
+                            f"\nBeginn of {line[0]}\n\n"
+                            f"{logfile.read()}\n\n"
+                            f"End of {line[0]}\n"
+                            )
 
 
-                break
-            pointer += 1
+                    break
+                pointer += 1
+
+    except ValueError:
+        luminapy.warn("Your input is not a valid number.")
 
 def export():
     show()
-    linenumber = int(input("Please enter the linenumber of the log you want to export: "))
-    dest = input("Please enter the destination: ")
+    try:
+        linenumber = int(input("Please enter the linenumber of the log you want to export: "))
+        dest = input("Please enter the destination: ")
 
-    with open(lib, "r") as file:
-        lines = file.readlines()
+        with open(lib, "r") as file:
+            lines = file.readlines()
 
-    pointer = 1
+        pointer = 1
 
-    if linenumber <= 0 or linenumber > len(lines):
-        luminapy.warn("There is something wrong with the linenumber you entered.")
+        if linenumber <= 0 or linenumber > len(lines):
+            luminapy.warn("There is something wrong with the linenumber you entered.")
 
-    else:
-        for line in lines:
-            if pointer == linenumber:
-                line = line.strip().split("| ")
+        else:
+            for line in lines:
+                if pointer == linenumber:
+                    line = line.strip().split("| ")
 
-                if os.path.exists(line[1]) and os.path.exists(dest):
-                    shutil.copy2(line[1], dest)
-                    luminapy.info(f"Copied file to {dest}.")
+                    if os.path.exists(line[1]) and os.path.exists(dest):
+                        shutil.copy2(line[1], dest)
+                        luminapy.info(f"Copied file to {dest}.")
 
-                else:
-                    luminapy.warn("The paths you entered arent correct. Please check!")
+                    else:
+                        luminapy.warn("The paths you entered arent correct. Please check!")
 
-                break
+                    break
 
-            pointer += 1
+                pointer += 1
+
+    except ValueError:
+        luminapy.warn("Your input is not a valid number.")
 
 
                 ####################
