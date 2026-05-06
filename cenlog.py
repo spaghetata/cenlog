@@ -11,13 +11,18 @@ from pathlib import Path
 import re
 import tempfile
 import shutil
-import luminapy
+
+try:
+    import luminapy
+except:
+    print("ERROR: Missing Library: luminapy")
+    exit(1)
 
                 ####################
 #################   Informations   #################
                 ####################
 
-Version     = "1.7"
+Version     = "1.7.2"
 Credits     = "spaghetata"
 License     = "GPL3.0"
 Discription = "This is a script to have a overview of your log-files."
@@ -84,15 +89,12 @@ def check_entrys():
         if not os.path.exists(line[1]) or line[0] == "" or line[1] == "":
             paths.append(line[1])
 
-        else:
-            pass
-
     if paths:
         luminapy.warn(f"Following paths may be not correct: {paths}")
 
 def help_menu():
     print(
-    "\n=====================================HELP=====================================\n"
+    "\n===============================HELP===============================\n"
     "COMMAND                DEFINITION\n"
     "\n"
     "help                   list all possible commands\n"
@@ -101,7 +103,7 @@ def help_menu():
     "delete                 deletes a log-file from the library\n"
     "open                   opens a log-file\n"
     "export                 exports a log-file to a choosen place\n"
-    "==============================================================================\n"
+    "==================================================================\n"
     )
 
 def show():
@@ -221,11 +223,7 @@ def export():
 
 if __name__ == "__main__":
 
-    if os.path.exists(lib):
-        pass
-
-    else:
-        # creates parent dirs if not existing
+    if not os.path.exists(lib):
         os.makedirs(os.path.dirname(lib), exist_ok=True)
         with open(lib, "x") as file:
             pass
